@@ -3,11 +3,11 @@
 
 struct dictionary;
 
-/* param file: a file pointer to the dictionary text file
+/* param file: the name of the dictionary text file
  * returns: pointer to the head of the dictionary trie
  * summary:  creates a trie out of a given dictionary file and returns the pointer to the head of the trie
  */
-dictionary* makeDict(FILE* file);
+dictionary* makeDict(char[] filename);
 
 /* param dict: pointer the head of the trie
  * summary: frees the trie
