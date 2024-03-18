@@ -1,36 +1,29 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-struct dictionary;
+struct Node;
 
 /* param file: the name of the dictionary text file
  * returns: pointer to the head of the dictionary trie
  * summary:  creates a trie out of a given dictionary file and returns the pointer to the head of the trie
  */
-dictionary* makeDict(char[] filename);
+struct Node* makeDict(char filename[]);
+
+/* param c: the character to convert to index
+ * returns: int that represents index associated with given character
+ */
+int hash(char c); 
 
 /* param dict: pointer the head of the trie
  * summary: frees the trie
  */
-void freeDict(dictionary* dict);
-
-/* param dict: pointer the head of the trie
- * param word: the word to add to the trie
- * summary: inserts a word into the trie
- */
-void insertWord(dictionary* dict, char[] word);
-
-/* param dict: pointer the head of the trie
- * param word: the word to delete from the trie
- * summary: deletes a word in the trie
- */
-void deleteWord(dictionary* dict, char[] word);
+void freeDict(struct Node* head);
 
 /* param dict: pointer to the head of the trie
  * param word: the word to verify
- * returns: true if the word is valid, false if the word is invalid
- * summary: searches the dictionary for a word. Returns true if the word is in the dictionary, false if the word is not in the dictionary.
+ * returns: 1 if the word is valid, 0 if the word is invalid
+ * summary: searches the dictionary for a word. Returns 1 if the word is in the dictionary, 0 if the word is not in the dictionary.
  */
-bool isWord(dictionary* dict, char[] word);
+int isWord(struct Node* head, char word[]);
 
 #endif
