@@ -130,6 +130,15 @@ int isWord(struct Node* head, char word[]) {
 			wptr++;
 			continue;
 
+		} else 
+
+		if (*wptr == '-') {
+			if (tptr->isWord == 1) {
+				// if string before - is a word, then continue and set tptr to head
+				tptr = head;
+				wptr++;
+				continue;
+			}
 		} else
 
 		if (tptr->children[index] == NULL) {
