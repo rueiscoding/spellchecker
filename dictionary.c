@@ -116,16 +116,45 @@ int isWord(struct Node* head, char word[]) {
 	struct Node* tptr = head; // trie pointer
 	int isWord = 0;
 
+	while ((int)(*wptr) > 127 || (int)(*wptr) < 0 || (int)(*wptr) == ' ' || (int)(*wptr) == '\'' || (int)(*wptr) == '"' || (int)(*wptr) == '{' || (int)(*wptr) == '}' || (int)(*wptr) == '[' || (int)(*wptr)  == ']' || (int)(*wptr)  == '(' || (int)(*wptr)  == ')') {
+		// ignore invalid characters at beginning of word
+        	wptr++;
+	}
+
 	while ((*wptr) != '\0') {
 		// while the next character is not the end of string character, traverse trie
 		int index = hash(*wptr);
 
+		if ((int)(*wptr) > 127 || (int)(*wptr) < 0) {
+			// ignore any characters outside of valid ASCII
+			wptr++;
+			continue;
+
+		} else
+
 		if (tptr->children[index] == NULL) {
-			return 0; // if we reach a leaf node before processing entire word, word is invalid
-		}
+			if (tptr->isWord == 1) {
+				// run if we reach leaf node before processing entire word
+
+				isWord = 1; 
+
+				while ((*wptr) != '\0') {
+					// continue to traverse string
+				
+					if (isalpha(*wptr)) {
+						// if there are any letters after valid word, word is invalid	
+						isWord = 0;
+					}
+				}
+
+			} else {
+				return 0;
+			}
+
+			return isWord;
+		} 
 
 		tptr = tptr->children[index];
-
 		wptr++;
 	}
 
