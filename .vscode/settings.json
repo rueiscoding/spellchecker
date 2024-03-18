@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "traverse.C": "cpp",
+        "dictionary.h": "c",
+        "stdio.h": "c"
+    }
+}

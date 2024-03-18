@@ -1,3 +1,4 @@
+#include "traverse.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,13 +12,12 @@
  * directory name and returns a list of text files.
  */
 
-typedef struct FileNode {
+struct FileNode {
     char *path;
     struct FileNode *next;
-} FileNode;
+};
 
-FileNode *file_list_head = NULL; // global variable to hold the head of the file list
-// label this as 'extern' in readfile.h
+struct FileNode *file_list_head = NULL;
 
 // valid files end with '.txt', ignore files starting with '.'
 int is_valid_file(const char *filename) {
@@ -43,16 +43,28 @@ int is_valid_directory(char *directory){
     return (directory[0] == '.') ? 0 : 1;
 }
 
-// creates a linkedlist for filepaths
+// creates a linkedlist for filepaths. returns pointer to beginning of filepath
 void add_file_to_list(const char *path){
 
     // allocate memory for the node and copy path to node
-    FileNode *new_node = (FileNode *) malloc(sizeof(FileNode));
+    struct FileNode *new_node = (struct FileNode *) malloc(sizeof(struct FileNode));
     new_node->path = strdup(path);
 
     // insert node to beginning of list
     new_node->next = file_list_head;
     file_list_head = new_node;
+}
+
+// if file name matches the base filename
+// example: filename as 'helloworld.txt' and base_filename as 'helloworld'
+int matches_base_filename(const char *filename, const char *base_filename) {
+
+    if (strcmp(filename, base_filename) == 0){
+        return 1;
+    }
+
+    size_t len = strlen(base_filename);
+    return strncmp(filename, base_filename, len) == 0 && filename[len] == '.';
 }
 
 // recursively finds all .txt files in a directory, returns a list
@@ -96,12 +108,50 @@ void traverse_directory(const char *directory) {
     closedir(dir);
 }
 
+/**
+ * command line arguments don't need to follow directory traversal rules of
+ * valid-invalid files or directories
+ * "the requirements to ignore files beginning with a period and not ending with “.txt”
+ * only apply to directory traversal, not to files in the argument list."
+ */
+struct FileNode* command_line_traverse(const char *argument){
+    char full_filename[FILENAME_MAX];
+    DIR *dir;
+    struct dirent *entry;
+
+    char cwd[2048]; // assuming max length
+    getcwd(cwd, sizeof(cwd)); // check in present directory for a match
+    dir = opendir(cwd);
+    if (dir == NULL) {
+        perror("Unable to open directory");
+        exit(EXIT_FAILURE);
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (matches_base_filename(entry->d_name, argument)) { // found matching file or directory
+            strcpy(full_filename, entry->d_name);
+            struct stat path_stat;
+            stat(full_filename, &path_stat);
+
+            if (S_ISREG(path_stat.st_mode)){ 
+                add_file_to_list(full_filename);
+                return file_list_head; 
+            }else if(S_ISDIR(path_stat.st_mode)){
+                traverse_directory(full_filename);
+                return file_list_head;
+            }
+            break;
+        }
+    }
+    return NULL;
+}
+
 // to be called by other files once the file_list is used
 void free_file_list(){
 
-    FileNode *current = file_list_head;
+    struct FileNode *current = file_list_head;
     while (current != NULL) {
-        FileNode *temp = current;
+        struct FileNode *temp = current;
         current = current->next;
 
         // free the full_name
@@ -110,25 +160,25 @@ void free_file_list(){
         // free the memory for the node
         free(temp);
     }
+    file_list_head = NULL;
 }
 
 // to test my_files folder
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("requires directory name");
-        return 1;
-    }
+// int main(int argc, char *argv[]) {
+//     if (argc != 2) {
+//         printf("requires directory name");
+//         return 1;
+//     }
 
-    traverse_directory(argv[1]);
+//     //traverse_directory(argv[1]);
+//     struct FileNode *current = command_line_traverse(argv[1]);
 
-    // printing to test traverse_directory
-    FileNode *current = file_list_head;
-    while (current != NULL) {
-        printf("%s\n", current->path);
-        current = current->next;
-    }
+//     while (current != NULL) {
+//         printf("%s\n", current->path);
+//         current = current->next;
+//     }
 
-    free_file_list();
+//     free_file_list();
 
-    return 0;
-}
+//     return 0;
+// }
