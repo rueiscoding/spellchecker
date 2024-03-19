@@ -2,70 +2,62 @@
 #include "readfile.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <unistd.h> // for read()
+#include <fcntl.h> // for open()
+#include <ctype.h> // for isspace()
 
 #define MAX_WORD_LEN 2048
 #define BUFFER_SIZE 4096
 
-// void check_spelling(const char *filename, struct Node* trie_head) {
-//     FILE *file = fopen(filename, "r");
-//     if (file == NULL) {
-//         perror("Error opening file.\n");
-//     }
+void check_spelling(const char *filename, struct Node* trie_head) {
+    int file_desc, n_bytes;
+    char buffer[MAX_WORD_LEN];
+    char word[MAX_WORD_LEN];
+    int row_num = 0, col_num = 0;
+    int i = 0;
 
-//     char word[MAX_WORD_LEN];
-//     int line_num = 1, col_num = 1;
-//     int c;
-    
-//     while ((c = fgetc(file)) != EOF) { // fgetc get next string and includes null terminator
-        
-//         if (c == '\n') {
-//             line_num++;
-//             col_num = 1;
-//             continue;
-//         }
+    file_desc = open(filename, O_RDONLY);
+    if (file_desc < 0) {
+        perror("Error opening file");
+    }
 
-//         if (isWord(trie_head, c)) { // if the word is valid
-//             col_num += strlen(c) + 1;  // gets length of  a string or char array without null terminator
-//             // +1 for space
-//         }
-//         else{ // if the word is invalid
-//             printf("%s (%d, %d): %s", filename, line_num, col_num, c);
-//             col_num += strlen(c) + 1;
-//         }
+    while ((n_bytes = read(file_desc, buffer, MAX_WORD_LEN)) > 0) {
 
-//     }
-//     fclose(file);
-// }
+        for (i = 0; i < n_bytes; i++) {
+
+            if (buffer[i] == '\n') {
+                row_num++;
+                col_num = 0;
+            } 
+            else if (isspace(buffer[i])) {
+                col_num++;
+            } else {
+                
+                word[0] = buffer[i];
+                int j = 1;
+                while (i + j < n_bytes && !isspace(buffer[i + j]) && j < MAX_WORD_LEN - 1) {
+                    word[j] = buffer[i + j];
+                    j++;
+                }
+                word[j] = '\0'; //null term
+                if (!isWord(trie_head, word)){
+                    printf("Row %d, Column %d: '%s' is misspelled\n", row_num + 1, col_num + 1, word);
+                }
+                col_num++;
+                i += j - 1;
+            }
+        }
+    }
+
+    close(file_desc);
+
+}
+
 
 
 int main(int argc, char *argv[]) {
-    //struct Node* trieheader = makeDict("dictionary.txt");
-    //check_spelling("readfiletest.txt", trieheader);
-
-    FILE *file = fopen("readfiletest.txt", "r");
-    if (file == NULL) {
-        perror("Error opening file.\n");
-    }
-
-    char word[MAX_WORD_LEN];
-    int line_num = 1, col_num = 1;
-    int c;
-    
-    while ((c = fgetc(file)) != EOF) { // fgetc get next string and includes null terminator
-        
-        if (c == '\n') {
-            line_num++;
-            col_num = 1;
-            continue;
-        }
-
-        col_num += strlen(c) + 1;
-        printf("\nword: %s is at line, col: (%d, %d)", c, line_num, col_num);
-
-    }
-    fclose(file);
+    struct Node* trieheader = makeDict("dictionary.txt");
+    check_spelling("readfiletest.txt", trieheader);
 
 
 }
