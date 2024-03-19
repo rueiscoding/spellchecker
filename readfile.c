@@ -55,9 +55,9 @@ void check_spelling(const char *filename, struct Node* trie_head) {
 
 
 
-int main(int argc, char *argv[]) {
-    struct Node* trieheader = makeDict("dictionary.txt");
-    check_spelling("readfiletest.txt", trieheader);
+// int main(int argc, char *argv[]) {
+//     struct Node* trieheader = makeDict("dictionary.txt");
+//     check_spelling("readfiletest.txt", trieheader);
 
 
-}
+// }

@@ -2,6 +2,7 @@
     "files.associations": {
         "traverse.C": "cpp",
         "dictionary.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "readfile.h": "c"
     }
 }

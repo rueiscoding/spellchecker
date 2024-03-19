@@ -33,7 +33,8 @@ int main(int argc, char *argv[]) {
         const char *traverse_this = argv[i];
         struct FileNode *current = command_line_traverse(traverse_this);
         while (current != NULL) {
-            printf("%s\n", current->path);
+            //printf("%s\n", current->path);
+            check_spelling(current->path, trie_header);
             current = current->next;
         }
 
