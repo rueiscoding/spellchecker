@@ -89,7 +89,7 @@ void traverse_directory(const char *directory) {
 
         // saves entry status in path_stat. use path stat to check if file or dir
         struct stat path_stat;
-        stat(full_name, &path_stat); 
+        stat(full_name, &path_stat);
 
         if (S_ISDIR(path_stat.st_mode)){ // is a directory
             

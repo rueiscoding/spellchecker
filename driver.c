@@ -42,4 +42,6 @@ int main(int argc, char *argv[]) {
 
     }
 
+
+    freeDict(trie_header);
 }

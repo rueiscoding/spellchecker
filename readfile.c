@@ -41,7 +41,7 @@ void check_spelling(const char *filename, struct Node* trie_head) {
                 }
                 word[j] = '\0'; //null term
                 if (!isWord(trie_head, word)){
-                    printf("Row %d, Column %d: '%s' is misspelled\n", row_num + 1, col_num + 1, word);
+                    printf("\n%s (%d, %d): %s", filename, row_num + 1, col_num + 1, word);
                 }
                 col_num++;
                 i += j - 1;
@@ -59,5 +59,6 @@ void check_spelling(const char *filename, struct Node* trie_head) {
 //     struct Node* trieheader = makeDict("dictionary.txt");
 //     check_spelling("readfiletest.txt", trieheader);
 
+//     freeDict(trieheader);
 
 // }
