@@ -35,7 +35,7 @@ struct Node* makeDict(char filename[]) {
 	}
 
 	char* bptr = buffer; // ptr to traverse buffer
-	struct Node* tptr = head; // ptr to traverse trie
+	struct Node* tptr = head; // ptr to traverse trie. Handles exact capitalization.
 
 	do {
 		// keep reading until end of file
@@ -112,13 +112,19 @@ void freeDict(struct Node* head) {
  * Checks if given string is a word.
  */
 int isWord(struct Node* head, char word[]) {
-	char* wptr = word; // word pointer
+	char* wptr = word; // original word pointer
 	struct Node* tptr = head; // trie pointer
 	int isWord = 0;
+	int isCap[2048]; // -1 if don't need to check cap, 0 if isn't capitalized, 1 if is capitalized, -2 if end of word
+	int* isCapPtr = isCap;
 
+	// check spelling only
+	
 	while ((int)(*wptr) > 127 || (int)(*wptr) < 0 || (int)(*wptr) == ' ' || (int)(*wptr) == '\'' || (int)(*wptr) == '"' || (int)(*wptr) == '{' || (int)(*wptr) == '}' || (int)(*wptr) == '[' || (int)(*wptr)  == ']' || (int)(*wptr)  == '(' || (int)(*wptr)  == ')') {
 		// ignore invalid characters at beginning of word
-        	wptr++;
+        	*isCapPtr = -1; // don't need to check cap
+		isCapPtr++;
+		wptr++;
 	}
 
 	while ((*wptr) != '\0') {
@@ -133,8 +139,9 @@ int isWord(struct Node* head, char word[]) {
 		} else 
 
 		if (*wptr == '-') {
+
 			if (tptr->isWord == 1) {
-				// if string before - is a word, then continue and set tptr to head
+				isCapPtr++;
 				tptr = head;
 				wptr++;
 				continue;
@@ -142,8 +149,38 @@ int isWord(struct Node* head, char word[]) {
 		} else
 
 		if (tptr->children[index] == NULL) {
+			int upper;
+			if (isalpha(*wptr) && isupper(*wptr)) {
+				// if alphabetical, switch case if not matching
+				index = hash(tolower(*wptr));
+				upper = 0; // lowercase
+			} else 
+			if (isalpha(*wptr) && islower(*wptr)) {
+				// if alphabetical, switch case if not matching
+				index = hash(toupper(*wptr));
+				upper = 1; // uppercase
+			}
+
+			if (tptr->children[index] != NULL) {
+				// if it matches, then spelling matches. Continue.
+				if (upper) {
+					*isCapPtr = 1; // is capitalized
+				} else {
+					*isCapPtr = 0; // isn't capitalized
+				}
+
+				isCapPtr++;
+
+				tptr = tptr->children[index];
+				wptr++;
+				continue;
+			}
+
+			// if still does not match, handle
+
 			if (tptr->isWord == 1) {
-				// run if we reach leaf node before processing entire word
+				// if we reach leaf node before processing entire word and current node is a word
+				// check if rest of word is just punctuation that can be ignored
 
 				isWord = 1; 
 
@@ -152,24 +189,158 @@ int isWord(struct Node* head, char word[]) {
 				
 					if (isalpha(*wptr)) {
 						// if there are any letters after valid word, word is invalid	
-						isWord = 0;
+						return 0;
 					}
+
+					*isCapPtr = -1; // don't need to check cap
+					isCapPtr++;
+					wptr++;
 				}
+				
+				*isCapPtr = -2; // end of word
+				break; // break out of loop, end of word
+			} else
+			if (tptr->isWord == 0) {
+				return 0; // word is invalid
+			}	
 
-			} else {
-				return 0;
-			}
-
-			return isWord;
 		} 
 
-		tptr = tptr->children[index];
+		if (isalpha(*wptr)) {
+			if (isupper(*wptr)) {
+				*isCapPtr = 1;
+			} else {
+				*isCapPtr = 0;
+			}
+		} else {
+			*isCapPtr = -1;
+		}
+
+		tptr = tptr->children[index]; // check next character
 		wptr++;
+		isCapPtr++;
 	}
 
 	if ((*tptr).isWord) {
 		isWord = 1;
 	}
 
+	// check capitalization if spelling is correct
+	if (isWord == 1) {
+		isCapPtr = isCap; // pointer to capitalization array
+		wptr = word;
+		
+		while (*isCapPtr == -1 && *wptr != '\0') {
+			// ignore any invalid characters at beginning
+			isCapPtr++;
+			wptr++;
+
+		}
+
+		// first valid cap check
+		while (*wptr != '\0') {
+			if (*isCapPtr == 1) {
+				// if dict char is uppercase and word char is lowercase, word is invalid
+				if (!isupper(*wptr)) {
+					return 0;
+				}
+
+				// otherwise both dict and word is uppercase and we can continue 
+				wptr++;
+				isCapPtr++;
+				continue;
+			} else
+			if (*isCapPtr == 0) {
+				if (!isupper(*wptr)) {
+					// if dict is lowercase and word is lowercase, pattern is established
+					// all characters must be lowercase unless dict has an uppercase
+					while (*wptr != '\0') {
+						// check pattern for rest of word
+						if(*isCapPtr == 0) {
+							// if dict is lowercase, word should be lowercase
+							if (isupper(*wptr)) {
+								return 0; // if word is uppercase, invalid
+							}
+						} else
+						if (*isCapPtr == 1) {
+							// if dict is capital, word should also be capital
+							if (!isupper(*wptr)) {
+								return 0; // if word is lowercase, invalid
+							}
+						}
+
+						// otherwise, *isCapPtr == -1, so don't check
+						// continue
+						isCapPtr++;
+						wptr++;
+					}
+				} else
+				if (isupper(*wptr)) {
+					// if dict is lowercase and word is uppercase, check the cases
+
+					isCapPtr++;
+					wptr++;
+
+					while (*wptr != '\0') {
+						if (*isCapPtr == -1 || (*isCapPtr == 1 && isupper(*wptr))) {
+							// if *isCapPtr is -1, don't check cap
+							// if dict is uppercase and word is uppercase, continue
+							isCapPtr++;
+							wptr++;
+						} else
+						if (*isCapPtr == 1 && !isupper(*wptr)) {
+							// if dict is uppercase and word is lowercase, invalid
+							return 0;
+						} else 
+						if (*isCapPtr == 0 && isupper(*wptr)) {
+							// if dict is lowercase and word is uppercase, pattern has been established
+							// must all be uppercase
+							while (*wptr != '\0') {
+								// check that rest of word is uppercase
+								if (*isCapPtr != -1) {
+									if (!isupper(*wptr))
+										return 0; // if character is lowercase, invalid
+								}
+
+								// otherwise *isCapPtr is -1, don't check cap
+								// continue
+								isCapPtr++;
+								wptr++;
+							}
+						} else
+						if (*isCapPtr == 0 && !isupper(*wptr)) {
+							// if dict is lowercase and word is lowercase, pattern has been established
+							// rest must be lowercase unless dict is uppercase
+							while (*wptr != '\0') {
+								// check that rest of the word is lowercase unless dict is uppercase
+								if (*isCapPtr == 0) {
+									if (isupper(*wptr)) {
+										return 0; // if dict is lower and word is upper, invalid
+									}
+
+									// otherwise word is lower and is valid
+								} else 
+								if (*isCapPtr == 1) {
+									if (!isupper(*wptr)) {
+										return 0; // if dict is upper and word is lower, invalid
+									}
+
+									// otherwise word is upper and is valid
+								}
+
+								// otherwise *isCapPtr is -1, don't check cap
+								// continue
+								wptr++;
+								isCapPtr++;
+							}
+						}
+					}
+				}
+				
+			}
+		}	
+	}
+
 	return isWord;
+
 }
