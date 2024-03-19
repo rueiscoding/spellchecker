@@ -59,6 +59,12 @@ struct Node* makeDict(char filename[]) {
 				if (tptr->children[index] == NULL) {
 					// if child does not exist, create it
 					tptr->children[index] = (struct Node*)malloc(sizeof(struct Node)); // add child at index
+					
+					for (int i = 0;  i < NUMPOSCHARS; i++) {
+				                // initialize children to NULL
+						tptr->children[index]->children[i] = NULL;
+		                        }
+
 					tptr->isWord = 0;
 					tptr->character = *bptr; 
 				}
@@ -91,21 +97,14 @@ int hash(char c) {
  * Frees the trie.
  */
 void freeDict(struct Node* head) {
-	if ((*head).isWord) {
-		
-		free(head);
-		
-		return;
-	} else {
-		
-		for (int i; i < NUMPOSCHARS; i++) {
-			// free children
-			if (head->children[i] != NULL) {
-				struct Node* ptr = head->children[i];
-				freeDict(ptr);
-			}	
+
+	for (int i = 0; i < NUMPOSCHARS; i++) {
+		if (head->children[i] != NULL) {
+			freeDict(head->children[i]);
 		}
 	}
+	
+	free(head);
 }
 
 /*
