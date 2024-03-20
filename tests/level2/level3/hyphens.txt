@@ -1,0 +1,6 @@
+this tests hyphenated words
+4325-this-valid
+valid-this-invalid
+valid-4325
+th24l-4325-^*(*&%$567
+{}{{valid-this56786%^%^
