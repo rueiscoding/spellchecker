@@ -35,7 +35,7 @@ struct Node* makeDict(char filename[]) {
 	}
 
 	char* bptr = buffer; // ptr to traverse buffer
-	struct Node* tptr = head; // ptr to traverse trie. Handles exact capitalization.
+	struct Node* tptr = head; // ptr to traverse trie. Handles exact spelling.
 
 	do {
 		// keep reading until end of file
@@ -78,6 +78,7 @@ struct Node* makeDict(char filename[]) {
 		}
 
 		bptr = buffer; // reset buffer pointer
+
 	} while ((numBytesRead = read(fd, buffer, BUFFERSIZE)) > 0);
 	
 	
@@ -132,6 +133,8 @@ int isWord(struct Node* head, char word[]) {
 
 		if ((int)(*wptr) > 127 || (int)(*wptr) < 0) {
 			// ignore any characters outside of valid ASCII
+			*isCapPtr = -1;
+			isCapPtr++;
 			wptr++;
 			continue;
 
@@ -140,6 +143,7 @@ int isWord(struct Node* head, char word[]) {
 		if (*wptr == '-') {
 
 			if (tptr->isWord == 1) {
+				*isCapPtr = -1;
 				isCapPtr++;
 				tptr = head;
 				wptr++;
@@ -148,16 +152,23 @@ int isWord(struct Node* head, char word[]) {
 		} else
 
 		if (tptr->children[index] == NULL) {
+			// check case where current wptr character has no path in the trie
+			
 			int upper;
-			if (isalpha(*wptr) && isupper(*wptr)) {
-				// if alphabetical, switch case if not matching
-				index = hash(tolower(*wptr));
-				upper = 0; // lowercase
-			} else 
-			if (isalpha(*wptr) && islower(*wptr)) {
-				// if alphabetical, switch case if not matching
-				index = hash(toupper(*wptr));
-				upper = 1; // uppercase
+
+			// try switching capitalization
+			if (isalpha(*wptr)) {
+				// if alphabet character
+
+				if (isupper(*wptr)) {
+					// if uppercase, switch to lowercase
+					index = hash(tolower(*wptr));
+					upper = 0; // save current case to note if lowercase matches
+				} else {
+					// if lowercase, switch to uppercase
+					index = hash(toupper(*wptr));
+					upper = 1; // save current capitalization to note for isCapPtr if lowercase matches
+				}
 			}
 
 			if (tptr->children[index] != NULL) {
@@ -218,10 +229,6 @@ int isWord(struct Node* head, char word[]) {
 		tptr = tptr->children[index]; // check next character
 		wptr++;
 		isCapPtr++;
-	}
-
-	if ((*tptr).isWord) {
-		isWord = 1;
 	}
 
 	// check capitalization if spelling is correct
