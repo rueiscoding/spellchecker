@@ -84,24 +84,35 @@ void traverse_directory(const char *directory) {
         size_t full_name_len = strlen(directory) + 1 + strlen(entry->d_name) + 1;
         
         // allocate memory for full_name, and concatenate current path with entry name
-        char *full_name = (char *)malloc(full_name_len); //do i check if malloc fails??
-        snprintf(full_name, full_name_len, "%s/%s", directory, entry->d_name); // hardcoding '/'
+        char *full_name = (char *)malloc(full_name_len);
+        //snprintf(full_name, full_name_len, "%s/%s", directory, entry->d_name); // hardcoding '/'
+
+        strcpy(full_name, directory);
+        strcat(full_name, "/");
+        strcat(full_name, entry->d_name);
+
+       //printf("\nbytes %s: %ld", full_name, full_name_len);
 
         // saves entry status in path_stat. use path stat to check if file or dir
         struct stat path_stat;
-        stat(full_name, &path_stat);
+        stat(full_name, &path_stat); 
 
         if (S_ISDIR(path_stat.st_mode)){ // is a directory
             
             if(is_valid_directory(entry->d_name)){
                 traverse_directory(full_name);
+                //after getting directoy, free its name!!
             }
+            free(full_name);
 
         }else if (S_ISREG(path_stat.st_mode)) { // is a regular file
 
             if(is_valid_file(entry->d_name)){
                 add_file_to_list(full_name);
             }
+            free(full_name);
+        }else{
+            free(full_name);
         }
     }
 
@@ -135,14 +146,17 @@ struct FileNode* command_line_traverse(const char *argument){
 
             if (S_ISREG(path_stat.st_mode)){ 
                 add_file_to_list(full_filename);
+                closedir(dir);
                 return file_list_head; 
             }else if(S_ISDIR(path_stat.st_mode)){
+                closedir(dir);
                 traverse_directory(full_filename);
                 return file_list_head;
             }
             break;
         }
     }
+    closedir(dir);
     return NULL;
 }
 
@@ -163,7 +177,7 @@ void free_file_list(){
     file_list_head = NULL;
 }
 
-// to test my_files folder
+//to test my_files folder
 // int main(int argc, char *argv[]) {
 //     if (argc != 2) {
 //         printf("requires directory name");
