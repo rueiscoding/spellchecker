@@ -44,6 +44,3 @@ test1.txt - more tests, words with punctuation between
 level3 directory:
 hyphens.txt - tests hyphenated words, including words that end with ignored punctuation and a hyphen followed by ignored punctuation
 capitals.txt - tests capitals
-
-godtier directory:
-thebeemovie.txt - the bee movie transcript
