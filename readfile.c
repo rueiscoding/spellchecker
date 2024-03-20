@@ -43,7 +43,7 @@ void check_spelling(const char *filename, struct Node* trie_head) {
                 if (!isWord(trie_head, word)){
                     printf("\n%s (%d, %d): %s", filename, row_num + 1, col_num + 1, word);
                 }
-                col_num++;
+                col_num+= j;
                 i += j - 1;
             }
         }
