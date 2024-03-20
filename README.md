@@ -47,3 +47,7 @@ capitals.txt - tests capitals
 
 godtier directory:
 thebeemovie.txt - the bee movie transcript
+
+To test the recursive traversal of a directory, call the make command and run "./traverse <directory_name>" to get a list of all files ending with '.txt' in the directory.
+
+To test the error logging capabilities, run "./checkfile <dictionary_file> <test_file>", which will report misspelled words in the test_file along with their row and column number.
