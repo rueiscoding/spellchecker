@@ -9,12 +9,13 @@
 #define MAX_WORD_LEN 2048
 #define BUFFER_SIZE 4096
 
-void check_spelling(const char *filename, struct Node* trie_head) {
+int check_spelling(const char *filename, struct Node* trie_head) {
     int file_desc, n_bytes;
     char buffer[MAX_WORD_LEN];
     char word[MAX_WORD_LEN];
     int row_num = 0, col_num = 0;
     int i = 0;
+    int all_valid_spellings = 0;
 
     file_desc = open(filename, O_RDONLY);
     if (file_desc < 0) {
@@ -41,6 +42,7 @@ void check_spelling(const char *filename, struct Node* trie_head) {
                 }
                 word[j] = '\0'; //null term
                 if (!isWord(trie_head, word)){
+                    all_valid_spellings = 1; // there are invalid spellings
                     printf("\n%s (%d, %d): %s", filename, row_num + 1, col_num + 1, word);
                 }
                 col_num+= j;
@@ -50,6 +52,7 @@ void check_spelling(const char *filename, struct Node* trie_head) {
     }
 
     close(file_desc);
+    return all_valid_spellings;
 
 }
 
