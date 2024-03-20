@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     struct Node* trie_header = makeDict(path_to_dictionary);
     int invalid_spellings = 0; //set to false
 
-    int count = 0;
+    //int count = 0;
     for (int i = 2; i < argc; i++) {
         //printf("%d arg at\n", i);
         const char *traverse_this = argv[i];
