@@ -234,13 +234,12 @@ int isWord(struct Node* head, char word[]) {
 	// check capitalization if spelling is correct
 	if (isWord == 1) {
 		isCapPtr = isCap; // pointer to capitalization array
-		wptr = word;
+		wptr = word; // reset word pointer to beginning of word
 		
 		while (*isCapPtr == -1 && *wptr != '\0') {
 			// ignore any invalid characters at beginning
 			isCapPtr++;
 			wptr++;
-
 		}
 
 		// first valid cap check
